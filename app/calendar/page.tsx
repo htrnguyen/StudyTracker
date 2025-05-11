@@ -1,36 +1,36 @@
 import { Suspense } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { StudyTimeChart } from "@/components/study-time-chart"
-import { TaskCompletionChart } from "@/components/task-completion-chart"
+import { StudyCalendar } from "@/components/study-calendar"
+import { UpcomingReminders } from "@/components/upcoming-reminders"
 import { LoadingSpinner } from "@/components/loading-spinner"
 
-export default function StatsPage() {
+export default function CalendarPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Thống kê Học tập</h1>
-        <p className="text-muted-foreground">Theo dõi tiến độ học tập và hoàn thành công việc của bạn</p>
+        <h1 className="text-2xl font-bold tracking-tight">Lịch học tập</h1>
+        <p className="text-muted-foreground">Xem lịch học tập và nhắc nhở sắp tới</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Thời gian học tập</CardTitle>
+            <CardTitle>Lịch học tập</CardTitle>
           </CardHeader>
           <CardContent>
             <Suspense fallback={<LoadingSpinner />}>
-              <StudyTimeChart />
+              <StudyCalendar />
             </Suspense>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Hoàn thành công việc</CardTitle>
+            <CardTitle>Nhắc nhở sắp tới</CardTitle>
           </CardHeader>
           <CardContent>
             <Suspense fallback={<LoadingSpinner />}>
-              <TaskCompletionChart />
+              <UpcomingReminders />
             </Suspense>
           </CardContent>
         </Card>

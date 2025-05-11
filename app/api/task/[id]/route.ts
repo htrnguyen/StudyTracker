@@ -1,11 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function POST(request: NextRequest) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const id = params.id
     const body = await request.json()
 
+    // Add the ID to the request body
+    body.id = id
+
     // Call Google Apps Script endpoint
-    const response = await fetch(`${process.env.GOOGLE_APPS_SCRIPT_URL}?action=createReminder`, {
+    const response = await fetch(`${process.env.GOOGLE_APPS_SCRIPT_URL}?action=updateTask`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -19,7 +23,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: data.error || "Failed to create reminder",
+          error: data.error || "Failed to update task",
         },
         { status: 400 },
       )
@@ -27,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error("Error creating reminder:", error)
+    console.error("Error updating task:", error)
     return NextResponse.json(
       {
         success: false,

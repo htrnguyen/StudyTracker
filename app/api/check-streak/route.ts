@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server"
 
+// This endpoint will be called by a cron job to check for missed check-ins
 export async function GET() {
   try {
     // Call Google Apps Script endpoint
-    const response = await fetch(`${process.env.GOOGLE_APPS_SCRIPT_URL}?action=getStreak`)
+    const response = await fetch(`${process.env.GOOGLE_APPS_SCRIPT_URL}?action=checkMissedCheckIns`)
 
     const data = await response.json()
 
@@ -11,7 +12,7 @@ export async function GET() {
       return NextResponse.json(
         {
           success: false,
-          error: data.error || "Failed to get streak",
+          error: data.error || "Failed to check missed check-ins",
         },
         { status: 400 },
       )
@@ -19,7 +20,7 @@ export async function GET() {
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error("Error getting streak:", error)
+    console.error("Error checking missed check-ins:", error)
     return NextResponse.json(
       {
         success: false,

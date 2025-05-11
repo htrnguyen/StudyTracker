@@ -1,45 +1,90 @@
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 
-const APPS_SCRIPT_URL = process.env.GOOGLE_APPS_SCRIPT_URL
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
     // Validate required fields
-    if (!body.task || !body.category) {
-      return NextResponse.json({ error: "Missing required fields: task and category are required" }, { status: 400 })
+    if (!body.task) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Task description is required",
+        },
+        { status: 400 },
+      )
     }
 
-    // Format the request for Google Apps Script
-    const payload = {
-      action: "addTask",
-      data: {
-        task: body.task,
-        category: body.category,
-        done: body.done || false,
-        created_at: new Date().toISOString(),
-      },
+    if (!body.category) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Category is required for task prioritization",
+        },
+        { status: 400 },
+      )
     }
 
-    // Call Google Apps Script
-    const response = await fetch(APPS_SCRIPT_URL as string, {
+    // Call Google Apps Script endpoint
+    const response = await fetch(`${process.env.GOOGLE_APPS_SCRIPT_URL}?action=addTask`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     })
 
     const data = await response.json()
 
-    if (!response.ok) {
-      return NextResponse.json({ error: data.error || "Failed to add task" }, { status: response.status })
+    if (!data.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: data.error || "Failed to add task",
+        },
+        { status: 400 },
+      )
     }
 
     return NextResponse.json(data)
   } catch (error) {
     console.error("Error adding task:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Internal server error",
+      },
+      { status: 500 },
+    )
+  }
+}
+
+export async function GET() {
+  try {
+    // Call Google Apps Script endpoint
+    const response = await fetch(`${process.env.GOOGLE_APPS_SCRIPT_URL}?action=getTasks`)
+
+    const data = await response.json()
+
+    if (!data.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: data.error || "Failed to get tasks",
+        },
+        { status: 400 },
+      )
+    }
+
+    return NextResponse.json(data)
+  } catch (error) {
+    console.error("Error getting tasks:", error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Internal server error",
+      },
+      { status: 500 },
+    )
   }
 }

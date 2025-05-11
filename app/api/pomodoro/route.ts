@@ -1,47 +1,80 @@
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 
-const APPS_SCRIPT_URL = process.env.GOOGLE_APPS_SCRIPT_URL
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
     // Validate required fields
-    if (!body.duration || !body.session_date) {
+    if (!body.duration) {
       return NextResponse.json(
-        { error: "Missing required fields: duration and session_date are required" },
+        {
+          success: false,
+          error: "Duration is required for a Pomodoro session",
+        },
         { status: 400 },
       )
     }
 
-    // Format the request for Google Apps Script
-    const payload = {
-      action: "addPomodoro",
-      data: {
-        session_date: body.session_date,
-        duration: body.duration,
-        note: body.note || "",
-      },
-    }
-
-    // Call Google Apps Script
-    const response = await fetch(APPS_SCRIPT_URL as string, {
+    // Call Google Apps Script endpoint
+    const response = await fetch(`${process.env.GOOGLE_APPS_SCRIPT_URL}?action=addPomodoro`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     })
 
     const data = await response.json()
 
-    if (!response.ok) {
-      return NextResponse.json({ error: data.error || "Failed to add pomodoro session" }, { status: response.status })
+    if (!data.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: data.error || "Failed to add Pomodoro session",
+        },
+        { status: 400 },
+      )
     }
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error("Error adding pomodoro session:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Error adding Pomodoro session:", error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Internal server error",
+      },
+      { status: 500 },
+    )
+  }
+}
+
+export async function GET() {
+  try {
+    // Call Google Apps Script endpoint
+    const response = await fetch(`${process.env.GOOGLE_APPS_SCRIPT_URL}?action=getPomodoroLogs`)
+
+    const data = await response.json()
+
+    if (!data.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: data.error || "Failed to get Pomodoro logs",
+        },
+        { status: 400 },
+      )
+    }
+
+    return NextResponse.json(data)
+  } catch (error) {
+    console.error("Error getting Pomodoro logs:", error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Internal server error",
+      },
+      { status: 500 },
+    )
   }
 }
